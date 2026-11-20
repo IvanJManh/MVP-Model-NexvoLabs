@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 
+// In-memory debug buffer to inspect incoming Vapi webhook payloads via GET
+const recentEvents: any[] = [];
+
 // 3. Idempotency Guardrail: Store processed call.id values with 1-hour TTL
 const processedCalls = new Map<string, number>();
 const ONE_HOUR_MS = 60 * 60 * 1000;
+
+export async function GET() {
+  return NextResponse.json({
+    status: "online",
+    time: new Date().toISOString(),
+    eventCount: recentEvents.length,
+    recentEvents: recentEvents.slice(-20),
+  });
+}
 
 /**
  * Removes call IDs older than 1 hour to prevent memory leaks while maintaining idempotency.
@@ -89,6 +101,13 @@ export async function POST(req: Request) {
     console.log("[VAPI WEBHOOK RECEIVED]:", JSON.stringify(body, null, 2));
 
     const message = body?.message || body;
+
+    recentEvents.push({
+      timestamp: new Date().toISOString(),
+      type: message?.type || "unknown",
+      callId: message.call?.id || message.callId,
+      hasSecret: !!incomingSecret,
+    });
 
     // 1. Handle Function Tool Calls (e.g. get_service_availability_and_price)
     if (message?.type === "tool-calls") {
@@ -269,18 +288,56 @@ async function sendWhatsAppCheckoutLink(rawPhone: string) {
 
   const checkoutUrl = `https://checkout.nexvolabs.site/pay?booking_id=demo_${Date.now()}`;
 
+  // 1. Always dispatch the pre-approved Template first (Meta Cloud API requires a template to initiate delivery outside the 24h window)
+  const templatePayload = {
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: process.env.WHATSAPP_TEMPLATE_NAME || "hello_world",
+      language: { code: process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US" },
+    },
+  };
+
   const textPayload = {
     messaging_product: "whatsapp",
     to: formattedPhone,
     type: "text",
     text: {
-      body: `Thank you for calling Grand Hotel Galle! 🌴\n\nTo lock in your reservation for the Deluxe Ocean Suite ($180/night), please tap the secure deposit link below:\n\n👉 ${checkoutUrl}\n\nNeed assistance? Reply directly to this message.`,
+      body: `🌴 Grand Hotel Galle Concierge 🌴\n\nTo confirm your reservation for the Deluxe Ocean Suite ($180/night), please tap your secure priority checkout link below:\n\n👉 ${checkoutUrl}\n\nOur concierge team is at your service!`,
     },
   };
 
+  let templateSuccess = false;
+  let textSuccess = false;
+
   try {
-    console.log(`🌐 [META GRAPH API CALL]: POST https://graph.facebook.com/v21.0/${phoneNumberId}/messages`);
-    const res = await fetch(
+    // Step A: Send Template Message (bypasses 24h window constraint)
+    console.log(`🌐 [META TEMPLATE DISPATCH]: Sending template '${templatePayload.template.name}' to ${formattedPhone}...`);
+    const templateRes = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${whatsappToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templatePayload),
+      }
+    );
+    const templateData = await templateRes.json();
+    console.log(`📥 [META TEMPLATE RESPONSE] (HTTP ${templateRes.status}):`, JSON.stringify(templateData));
+
+    if (templateRes.ok) {
+      templateSuccess = true;
+      console.log(`✅ WhatsApp template message delivered! ID: ${templateData.messages?.[0]?.id}`);
+    } else {
+      console.warn(`⚠️ Meta template dispatch failed:`, templateData.error?.message);
+    }
+
+    // Step B: Send Text with Booking Link
+    console.log(`🌐 [META TEXT DISPATCH]: Sending deposit link to ${formattedPhone}...`);
+    const textRes = await fetch(
       `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
       {
         method: "POST",
@@ -291,48 +348,31 @@ async function sendWhatsAppCheckoutLink(rawPhone: string) {
         body: JSON.stringify(textPayload),
       }
     );
+    const textData = await textRes.json();
+    console.log(`📥 [META TEXT RESPONSE] (HTTP ${textRes.status}):`, JSON.stringify(textData));
 
-    const data = await res.json();
-    console.log(`📥 [META GRAPH API RESPONSE] (HTTP ${res.status}):\n`, JSON.stringify(data, null, 2));
-
-    if (res.ok) {
-      console.log(`✅ WhatsApp post-call deposit link successfully delivered to ${formattedPhone}! Message ID: ${data.messages?.[0]?.id}`);
-    } else {
-      console.warn(`⚠️ Text dispatch rejected by Meta (code: ${data.error?.code}). Initiating fallback to 'hello_world' template...`);
-
-      const templatePayload = {
-        messaging_product: "whatsapp",
-        to: formattedPhone,
-        type: "template",
-        template: {
-          name: "hello_world",
-          language: { code: "en_US" },
-        },
-      };
-
-      const templateRes = await fetch(
-        `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${whatsappToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(templatePayload),
-        }
-      );
-
-      const templateData = await templateRes.json();
-      console.log(`📥 [META TEMPLATE FALLBACK RESPONSE] (HTTP ${templateRes.status}):\n`, JSON.stringify(templateData, null, 2));
-
-      if (templateRes.ok) {
-        console.log(`✅ Fallback 'hello_world' template delivered to ${formattedPhone}! Message ID: ${templateData.messages?.[0]?.id}`);
-      } else {
-        console.error(`❌ Meta template dispatch also failed for ${formattedPhone}:`, JSON.stringify(templateData, null, 2));
-      }
+    if (textRes.ok) {
+      textSuccess = true;
+      console.log(`✅ WhatsApp text deposit link delivered! ID: ${textData.messages?.[0]?.id}`);
     }
+
+    recentEvents.push({
+      timestamp: new Date().toISOString(),
+      type: "whatsapp-dispatch",
+      recipient: formattedPhone,
+      templateSuccess,
+      textSuccess,
+      templateId: templateData.messages?.[0]?.id,
+      textId: textData.messages?.[0]?.id,
+    });
   } catch (err: any) {
     console.error("❌ [META GRAPH API NETWORK ERROR]:", err.message || err);
+    recentEvents.push({
+      timestamp: new Date().toISOString(),
+      type: "whatsapp-error",
+      recipient: formattedPhone,
+      error: err.message,
+    });
   }
   console.log(`======================================================\n`);
 }
