@@ -29,6 +29,11 @@ YOUR CORE OBJECTIVES:
 4. Frictionless Closing: Once availability is confirmed, gently encourage securing the reservation today with priority check-in perks.
 5. Concierge Advice: Answer questions about local attractions in Galle (Dutch Fort, whale watching, fine dining) and airport chauffeur transfers.
 
+MANDATORY RULES:
+1. WhatsApp Confirmation Behavior: Never say you cannot send WhatsApp messages. Instead, tell the guest: "As soon as we wrap up this call, our concierge system will automatically send your reservation summary and priority checkout link directly to your WhatsApp."
+2. Pronunciation of Galle: Always pronounce "Galle" phonetically as "Gahl" (never "Galet" or "Galley").
+3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
+
 CONVERSATION STYLE:
 - Natural, conversational, and concise spoken dialogue (1-3 sentences per turn).
 - Never recite markdown lists or robotic bullets.
@@ -78,7 +83,8 @@ export function buildAssistantPayload(webhookUrl: string) {
   // Only bind server URL if reachable from public internet (e.g. ngrok / cloudflare)
   if (isPublicUrl) {
     toolConfig.server = {
-      url: webhookUrl
+      url: webhookUrl,
+      ...(process.env.VAPI_WEBHOOK_SECRET ? { secret: process.env.VAPI_WEBHOOK_SECRET } : {})
     };
   }
 
@@ -118,6 +124,9 @@ export function buildAssistantPayload(webhookUrl: string) {
 
   if (isPublicUrl) {
     payload.serverUrl = webhookUrl;
+    if (process.env.VAPI_WEBHOOK_SECRET) {
+      payload.serverUrlSecret = process.env.VAPI_WEBHOOK_SECRET;
+    }
     payload.serverMessages = ["tool-calls", "end-of-call-report", "status-update"];
   }
 

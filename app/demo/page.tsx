@@ -45,10 +45,10 @@ export default function DemoPage() {
 
   // Vapi Credentials State
   const [publicKey, setPublicKey] = useState(
-    process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || ""
+    process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "5d5e9bbf-f7b6-4dbb-8d4e-b51a8e801df1"
   );
   const [assistantId, setAssistantId] = useState(
-    process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""
+    process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "66240553-bb8d-449c-a78b-5406f6fc3940"
   );
   const demoPhoneNumber =
     process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER || "+17124815055";
@@ -385,11 +385,25 @@ export default function DemoPage() {
           ? assistantId.trim()
           : null;
 
+      const phone = guestPhone.trim();
+      const name = guestName.trim();
+      const overrides: any = {
+        variableValues: {
+          ...(phone ? { customerPhone: phone } : {}),
+          ...(name ? { customerName: name } : {}),
+        },
+        metadata: {
+          ...(phone ? { customerPhone: phone } : {}),
+          ...(name ? { customerName: name } : {}),
+        },
+      };
+
       if (aid) {
-        await vapi.start(aid);
+        await vapi.start(aid, overrides);
       } else {
         // Fallback: Start with assistant payload directly
         await vapi.start({
+          ...overrides,
           transcriber: {
             provider: "deepgram",
             model: "nova-3",

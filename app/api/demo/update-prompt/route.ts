@@ -17,13 +17,21 @@ YOUR CORE OBJECTIVES:
 4. Frictionless Closing: Once availability is confirmed, gently encourage securing the reservation today with priority booking perks.
 5. Concierge Advice: Provide helpful guidance on local experiences, fine dining, and chauffeured airport transfers.
 
+MANDATORY RULES:
+1. WhatsApp Confirmation Behavior: Never say you cannot send WhatsApp messages. Instead, tell the guest: "As soon as we wrap up this call, our concierge system will automatically send your reservation summary and priority checkout link directly to your WhatsApp."
+2. Pronunciation of Galle: Always pronounce "Galle" phonetically as "Gahl" (never "Galet" or "Galley").
+3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
+
 CONVERSATION STYLE:
 - Natural, conversational, and concise spoken dialogue (1-3 sentences per turn).
 - Never recite markdown lists or robotic bullets.
 - Speak in smooth, human cadences.`;
 
-    const apiKey = process.env.VAPI_API_KEY;
-    const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+    const apiKey =
+      process.env.VAPI_API_KEY || "89a35db0-9523-4717-a500-96375fffa914";
+    const assistantId =
+      process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID ||
+      "66240553-bb8d-449c-a78b-5406f6fc3940";
 
     // Check if live API key and Assistant ID are present
     const hasLiveKeys =
