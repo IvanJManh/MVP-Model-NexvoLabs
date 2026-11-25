@@ -126,9 +126,9 @@ export async function POST(req: Request) {
         console.log(`🛠️ Vapi Tool Call Triggered: ${fn?.name}`, args);
 
         if (fn?.name === "get_service_availability_and_price") {
-          const serviceName = args.service_name || "Deluxe Ocean Suite";
-          const guests = args.guests || 3;
-          const date = args.date || "next Friday to Sunday";
+          const serviceName = args.service_type || args.service_name || "Deluxe Ocean Suite";
+          const guests = args.number_of_guests || args.guests || 2;
+          const date = args.check_in_date || args.date || "next Friday to Sunday";
 
           // Exact structured text for the voice agent
           const responseText = `The ${serviceName} is available for ${guests} guests from ${date} at $180 per night including ocean view, artisanal breakfast, and priority check-in.`;

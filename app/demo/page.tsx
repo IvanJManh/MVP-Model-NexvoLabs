@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Vapi from "@vapi-ai/web";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Phone,
   PhoneCall,
@@ -28,6 +29,7 @@ import {
   Smartphone,
   X,
   CreditCard,
+  QrCode,
 } from "lucide-react";
 
 interface TranscriptMessage {
@@ -657,6 +659,30 @@ export default function DemoPage() {
                     <Copy className="h-4 w-4" />
                   )}
                 </button>
+              </div>
+
+              {/* Scannable Mobile QR Code */}
+              <div className="mb-4 p-4 rounded-xl bg-slate-950/90 border border-indigo-900/60 flex flex-col sm:flex-row items-center gap-4">
+                <div className="bg-white p-2.5 rounded-xl shadow-lg shadow-black/50 flex-shrink-0">
+                  <QRCodeSVG
+                    value={`tel:${demoPhoneNumber}`}
+                    size={105}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+                <div className="text-left space-y-1">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    <QrCode className="h-3 w-3" />
+                    Instant Prospect Mobile Scan
+                  </span>
+                  <h4 className="text-sm font-semibold text-white">
+                    Scan with Mobile Camera
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Point your phone camera to dial {demoPhoneNumber} instantly and test Sarah live over cellular voice.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2 text-xs text-slate-400">

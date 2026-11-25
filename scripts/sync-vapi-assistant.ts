@@ -20,7 +20,12 @@ const normalizedAppUrl = rawAppUrl.replace(/\/$/, "").replace(/\/api\/webhooks\/
 const APP_URL = normalizedAppUrl;
 const WEBHOOK_URL = `${APP_URL}/api/webhooks/vapi`;
 
-export const BASE_SYSTEM_PROMPT = `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for Grand Hotel Galle.
+export const BASE_SYSTEM_PROMPT = `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for Grand Hotel Gahl in Sri Lanka.
+
+CURRENT CALENDAR CONTEXT:
+- Today's date is Wednesday, November 25, 2026.
+- The current year is 2026.
+- All inquiries, quotes, and reservations are for late 2026 or 2027. NEVER use the year 2024 or 2025.
 
 YOUR CORE OBJECTIVES:
 1. Welcoming Guests: Greet callers warmly with high elegance and professionalism.
@@ -62,25 +67,37 @@ export function buildAssistantPayload(webhookUrl: string) {
       parameters: {
         type: "object",
         properties: {
+          service_type: {
+            type: "string",
+            description: "The type or name of the suite, room, or hotel service (e.g. 'Deluxe Ocean Suite')"
+          },
+          check_in_date: {
+            type: "string",
+            description: "The requested check-in date or period (e.g. '2026-12-05' or 'this weekend')"
+          },
+          number_of_guests: {
+            type: "number",
+            description: "Number of guests staying"
+          },
           service_name: {
             type: "string",
-            description: "The name of the suite, room, or hotel service (e.g., 'Deluxe Ocean Suite')"
+            description: "Alias for service_type"
           },
           date: {
             type: "string",
-            description: "The requested reservation date or period (e.g., 'this weekend' or '2026-11-15')"
+            description: "Alias for check_in_date"
           },
           guests: {
             type: "number",
-            description: "Number of guests staying"
+            description: "Alias for number_of_guests"
           }
         },
-        required: ["service_name"]
+        required: ["service_type"]
       }
     }
   };
 
-  // Only bind server URL if reachable from public internet (e.g. ngrok / cloudflare)
+  // Only bind server URL if reachable from public internet (e.g. ngrok / cloudflare / vercel)
   if (isPublicUrl) {
     toolConfig.server = {
       url: webhookUrl,
@@ -96,11 +113,12 @@ export function buildAssistantPayload(webhookUrl: string) {
       model: "nova-3",
       language: "en"
     },
-    // 2. Model: OpenAI GPT-4o-mini
+    // 2. Model: OpenAI GPT-4o-mini with low-latency tuning
     model: {
       provider: "openai",
       model: "gpt-4o-mini",
-      temperature: 0.7,
+      temperature: 0.3,
+      maxTokens: 150,
       messages: [
         {
           role: "system",
@@ -117,9 +135,18 @@ export function buildAssistantPayload(webhookUrl: string) {
       stability: 0.5,
       similarityBoost: 0.75
     },
+    // 4. Smart Endpointing & Interruption Tuning
     silenceTimeoutSeconds: 30,
     maxDurationSeconds: 600,
-    firstMessage: "Hello! Thank you for calling Grand Hotel Galle. This is Sarah, your luxury concierge and reservations specialist. How may I assist you with your stay today?"
+    stopSpeakingPlan: {
+      numWords: 0,
+      voiceSeconds: 0.2,
+      backoffSeconds: 1
+    },
+    startSpeakingPlan: {
+      waitSeconds: 0.4
+    },
+    firstMessage: "Hello! Thank you for calling Grand Hotel Gahl. This is Sarah, your luxury concierge and reservations specialist. How may I assist you with your stay today?"
   };
 
   if (isPublicUrl) {
@@ -169,7 +196,8 @@ async function syncVapiAssistant() {
       method,
       headers: {
         "Authorization": `Bearer ${VAPI_API_KEY.trim()}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
       },
       body: JSON.stringify(payload)
     });

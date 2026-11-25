@@ -42,6 +42,65 @@ CONVERSATION STYLE:
 
     if (hasLiveKeys) {
       console.log(`[DYNAMIC PROMPT SYNC]: Syncing assistant ${assistantId} with Vapi API...`);
+
+      const webhookUrl =
+        (process.env.NEXT_PUBLIC_APP_URL || "https://mvp-model-nexvo-labs.vercel.app").replace(/\/$/, "") +
+        "/api/webhooks/vapi";
+      const webhookSecret = process.env.VAPI_WEBHOOK_SECRET || "founder2_vapi_secret_key";
+
+      const toolConfig = {
+        type: "function",
+        async: false,
+        server: {
+          url: webhookUrl,
+          secret: webhookSecret,
+        },
+        function: {
+          name: "get_service_availability_and_price",
+          description: "Check live room/service availability and pricing for a specified date and guest count.",
+          parameters: {
+            type: "object",
+            required: ["service_type"],
+            properties: {
+              service_type: {
+                type: "string",
+                description: "The type or name of the suite, room, or hotel service (e.g. 'Deluxe Ocean Suite')",
+              },
+              check_in_date: {
+                type: "string",
+                description: "The requested check-in date or period (e.g. '2026-12-05' or 'this weekend')",
+              },
+              number_of_guests: {
+                type: "number",
+                description: "Number of guests staying",
+              },
+              service_name: {
+                type: "string",
+                description: "Alias for service_type",
+              },
+              date: {
+                type: "string",
+                description: "Alias for check_in_date",
+              },
+              guests: {
+                type: "number",
+                description: "Alias for number_of_guests",
+              },
+            },
+          },
+        },
+        messages: [
+          {
+            type: "request-start",
+            content: "Let me check availability and current rates for you right now...",
+          },
+          {
+            type: "request-complete",
+            content: "Thank you for waiting, I have the live details.",
+          },
+        ],
+      };
+
       const response = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
         method: "PATCH",
         headers: {
@@ -52,12 +111,23 @@ CONVERSATION STYLE:
           model: {
             provider: "openai",
             model: "gpt-4o-mini",
+            temperature: 0.3,
+            maxTokens: 150,
             messages: [
               {
                 role: "system",
                 content: dynamicPrompt
               }
-            ]
+            ],
+            tools: [toolConfig]
+          },
+          stopSpeakingPlan: {
+            numWords: 0,
+            voiceSeconds: 0.2,
+            backoffSeconds: 1
+          },
+          startSpeakingPlan: {
+            waitSeconds: 0.4
           },
           firstMessage: `Hello! Thank you for calling ${name}. This is Sarah, your luxury concierge and reservations specialist. How may I assist you with your stay today?`
         })
