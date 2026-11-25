@@ -77,6 +77,7 @@ export default function DemoPage() {
   const [quickTextMessage, setQuickTextMessage] = useState("");
   const [isContactBoxOpen, setIsContactBoxOpen] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const vapiRef = useRef<any>(null);
   const transcriptsEndRef = useRef<HTMLDivElement>(null);
@@ -706,42 +707,50 @@ export default function DemoPage() {
               </div>
             </div>
 
-            {/* Vapi Keys Quick-Config (Collapsible) */}
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <Sliders className="h-4 w-4 text-slate-400" />
-                  <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    API Credentials Override
-                  </h4>
+            {/* Advanced Settings Drawer (Hidden by default for clean client presentations) */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                className="text-xs text-slate-500 hover:text-slate-400 flex items-center gap-1.5 transition-colors px-1 py-1 rounded"
+              >
+                <Sliders className="h-3.5 w-3.5" />
+                <span>{showAdvancedSettings ? "Hide Advanced Settings" : "Advanced Settings"}</span>
+              </button>
+
+              {showAdvancedSettings && (
+                <div className="mt-2.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                      Developer Credentials Override
+                    </h4>
+                  </div>
+                  <div>
+                    <label className="text-slate-400 block mb-1">
+                      NEXT_PUBLIC_VAPI_PUBLIC_KEY
+                    </label>
+                    <input
+                      type="password"
+                      value={publicKey}
+                      onChange={(e) => setPublicKey(e.target.value)}
+                      placeholder="Enter Vapi Public Key"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-400 block mb-1">
+                      NEXT_PUBLIC_VAPI_ASSISTANT_ID
+                    </label>
+                    <input
+                      type="text"
+                      value={assistantId}
+                      onChange={(e) => setAssistantId(e.target.value)}
+                      placeholder="Enter Vapi Assistant ID"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="text-slate-400 block mb-1">
-                    NEXT_PUBLIC_VAPI_PUBLIC_KEY
-                  </label>
-                  <input
-                    type="password"
-                    value={publicKey}
-                    onChange={(e) => setPublicKey(e.target.value)}
-                    placeholder="Enter Vapi Public Key"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-400 block mb-1">
-                    NEXT_PUBLIC_VAPI_ASSISTANT_ID
-                  </label>
-                  <input
-                    type="text"
-                    value={assistantId}
-                    onChange={(e) => setAssistantId(e.target.value)}
-                    placeholder="Enter Vapi Assistant ID"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
