@@ -48,6 +48,7 @@ export default function DemoPage() {
   const [nightlyRate, setNightlyRate] = useState("180");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([
     "English",
+    "Sinhala",
     "French",
     "German",
     "Hindi",
@@ -619,9 +620,10 @@ export default function DemoPage() {
                       Turn-1 Auto-Detect
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
                       { id: "English", label: "English", flag: "🇬🇧", native: "English" },
+                      { id: "Sinhala", label: "Sinhala", flag: "🇱🇰", native: "සිංහල" },
                       { id: "French", label: "French", flag: "🇫🇷", native: "Français" },
                       { id: "German", label: "German", flag: "🇩🇪", native: "Deutsch" },
                       { id: "Hindi", label: "Hindi", flag: "🇮🇳", native: "हिन्दी" },
@@ -648,7 +650,7 @@ export default function DemoPage() {
                     })}
                   </div>
                   <p className="text-[10px] text-slate-400 mt-1.5">
-                    Sarah detects English, French, German, and Hindi on turn 1 &amp; switches mid-call.
+                    Sarah detects English, Sinhala, French, German, and Hindi on turn 1 &amp; switches mid-call.
                   </p>
                 </div>
 
