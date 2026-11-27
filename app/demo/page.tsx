@@ -48,10 +48,9 @@ export default function DemoPage() {
   const [nightlyRate, setNightlyRate] = useState("180");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([
     "English",
-    "Sinhala",
     "French",
     "German",
-    "Hindi",
+    "Russian",
   ]);
 
   const toggleLanguage = (lang: string) => {
@@ -620,13 +619,12 @@ export default function DemoPage() {
                       Turn-1 Auto-Detect
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "English", label: "English", flag: "🇬🇧", native: "English" },
-                      { id: "Sinhala", label: "Sinhala", flag: "🇱🇰", native: "සිංහල" },
                       { id: "French", label: "French", flag: "🇫🇷", native: "Français" },
                       { id: "German", label: "German", flag: "🇩🇪", native: "Deutsch" },
-                      { id: "Hindi", label: "Hindi", flag: "🇮🇳", native: "हिन्दी" },
+                      { id: "Russian", label: "Russian", flag: "🇷🇺", native: "Русский" },
                     ].map((lang) => {
                       const isSelected = selectedLanguages.includes(lang.id);
                       return (
@@ -650,7 +648,7 @@ export default function DemoPage() {
                     })}
                   </div>
                   <p className="text-[10px] text-slate-400 mt-1.5">
-                    Sarah detects English, Sinhala, French, German, and Hindi on turn 1 &amp; switches mid-call.
+                    Sarah auto-adapts by caller phone country prefix (+33, +49, +7, +1/+44/+94) &amp; Turn-1 voice detection in English, French, German, and Russian.
                   </p>
                 </div>
 
