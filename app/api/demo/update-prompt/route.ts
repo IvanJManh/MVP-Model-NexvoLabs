@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const activeLanguages: string[] =
       Array.isArray(languages) && languages.length > 0
         ? languages
-        : ["English", "Sinhala", "French", "German", "Russian"];
+        : ["English", "French", "German", "Russian"];
 
     const dynamicPrompt = `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for ${name}.
 
@@ -28,15 +28,14 @@ MANDATORY RULES:
 
 MULTILINGUAL INTELLIGENCE & PREFERRED LANGUAGE LOCK:
 - Supported Languages: ${activeLanguages.join(", ")}.
-- Opening Prompt Choice: Sarah greets callers in her opening message asking: "Ayubowan and welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?"
-- Caller Language Lock: The moment the caller states or replies in their preferred language (e.g. states "Sinhala", "English", "French", "German", "Russian", or speaks directly in that language), Sarah IMMEDIATELY locks into that chosen language for the ENTIRE rest of the conversation—including room consultations, live availability lookups, quoting $${rate}/night rates, closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
+- Opening Prompt Choice: Sarah greets callers in her opening message asking: "Welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, French, German, or Russian?"
+- Caller Language Lock: The moment the caller states or replies in their preferred language (e.g. states "English", "French", "German", "Russian", or speaks directly in that language), Sarah IMMEDIATELY locks into that chosen language for the ENTIRE rest of the conversation—including room consultations, live availability lookups, quoting $${rate}/night rates, closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
 - Full Native Flow:
-  * In Sinhala: Greet and assist with polite, natural Sri Lankan hospitality phrasing: "ආයුබෝවන්! ${name} වෙත සාදරයෙන් පිළිගන්නවා. ඔබට අවශ්‍ය දිනයන් සහ විස්තර ලබාදෙන්න පුළුවන්ද? අපගේ ${service} එක රාත්‍රියකට ඩොලර් ${rate}ක් වෙනවා. ඇමතුම අවසන් වූ වහාම වෙන්කිරීමේ විස්තර සහ ගෙවීම් ලින්ක් එක ඔබගේ WhatsApp වෙත එවනු ලැබේ."
   * In English: "Welcome to ${name}! This is Sarah, your luxury concierge. Our ${service} is available at $${rate} per night..."
   * In French: "Bienvenue à ${name}! Je suis Sarah, votre concierge de luxe. Notre ${service} est à ${rate} $ par nuit..."
   * In German: "Herzlich willkommen im ${name}! Mein Name ist Sarah. Unser ${service} kostet ${rate} $ pro Nacht..."
   * In Russian: "Добро пожаловать в ${name}! Меня зовут Сара, ваш личный консьерж. Наш ${service} стоит ${rate} $ за ночь..."
-- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between Sinhala, English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
+- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
 - Consistent VIP Polish: Preserve Sarah's warm, sophisticated luxury concierge persona, room amenities, and $${rate}/night pricing across all languages.
 
 CONVERSATION STYLE:
@@ -126,12 +125,16 @@ CONVERSATION STYLE:
         },
         body: JSON.stringify({
           transcriber: {
-            provider: "gladia",
-            languageBehaviour: "automatic multiple languages"
+            provider: "deepgram",
+            model: "nova-3",
+            language: "multi"
           },
           voice: {
-            provider: "azure",
-            voiceId: "si-LK-ThiliniNeural"
+            provider: "11labs",
+            model: "eleven_turbo_v2_5",
+            voiceId: "EXAVITQu4vr4xnSDxMaL",
+            stability: 0.5,
+            similarityBoost: 0.75
           },
           model: {
             provider: "openai",
@@ -154,7 +157,7 @@ CONVERSATION STYLE:
           startSpeakingPlan: {
             waitSeconds: 0.4
           },
-          firstMessage: `Ayubowan and welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?`
+          firstMessage: `Welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, French, German, or Russian?`
         })
       });
 

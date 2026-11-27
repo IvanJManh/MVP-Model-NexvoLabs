@@ -48,7 +48,6 @@ export default function DemoPage() {
   const [nightlyRate, setNightlyRate] = useState("180");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([
     "English",
-    "Sinhala",
     "French",
     "German",
     "Russian",
@@ -510,7 +509,7 @@ export default function DemoPage() {
             <div className="flex items-center px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2" />
               <span className="text-slate-300 font-medium">
-                Gladia Multilingual &bull; GPT-4o-mini &bull; Azure Thilini Neural
+                Deepgram Nova-3 Multi &bull; GPT-4o-mini &bull; ElevenLabs Sarah
               </span>
             </div>
           </div>
@@ -620,10 +619,9 @@ export default function DemoPage() {
                       Turn-1 Auto-Detect
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "English", label: "English", flag: "🇬🇧", native: "English" },
-                      { id: "Sinhala", label: "Sinhala", flag: "🇱🇰", native: "සිංහල" },
                       { id: "French", label: "French", flag: "🇫🇷", native: "Français" },
                       { id: "German", label: "German", flag: "🇩🇪", native: "Deutsch" },
                       { id: "Russian", label: "Russian", flag: "🇷🇺", native: "Русский" },
@@ -650,7 +648,7 @@ export default function DemoPage() {
                     })}
                   </div>
                   <p className="text-[10px] text-slate-400 mt-1.5">
-                    Sarah asks the caller&apos;s preferred language in her opening greeting and speaks fluent Sinhala (Azure Thilini), English, French, German, or Russian.
+                    Sarah asks the caller&apos;s preferred language in her opening greeting and speaks fluent English, French, German, or Russian.
                   </p>
                 </div>
 

@@ -40,16 +40,15 @@ MANDATORY RULES:
 3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
 
 MULTILINGUAL INTELLIGENCE & PREFERRED LANGUAGE LOCK:
-- Supported Languages: English, Sinhala (සිංහල), French (Français), German (Deutsch), and Russian (Русский).
-- Opening Prompt Choice: Sarah greets callers in her opening message asking: "Ayubowan and welcome to Grand Hotel Galle. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?"
-- Caller Language Lock: The moment the caller states or replies in their preferred language (e.g. states "Sinhala", "English", "French", "German", "Russian", or speaks directly in that language), Sarah IMMEDIATELY locks into that chosen language for the ENTIRE rest of the conversation—including room consultations, live availability lookups, quoting $180/night rates, closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
+- Supported Languages: English, French (Français), German (Deutsch), and Russian (Русский).
+- Opening Prompt Choice: Sarah greets callers in her opening message asking: "Welcome to Grand Hotel Galle. I am Sarah, your concierge. Which language would you prefer to speak today — English, French, German, or Russian?"
+- Caller Language Lock: The moment the caller states or replies in their preferred language (e.g. states "English", "French", "German", "Russian", or speaks directly in that language), Sarah IMMEDIATELY locks into that chosen language for the ENTIRE rest of the conversation—including room consultations, live availability lookups, quoting $180/night rates, closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
 - Full Native Flow:
-  * In Sinhala: Greet and assist with polite, natural Sri Lankan hospitality phrasing: "ආයුබෝවන්! Grand Hotel Galle වෙත සාදරයෙන් පිළිගන්නවා. ඔබට අවශ්‍ය දිනයන් සහ විස්තර ලබාදෙන්න පුළුවන්ද? අපගේ Deluxe Ocean Suite එක රාත්‍රියකට ඩොලර් 180ක් වෙනවා. ඇමතුම අවසන් වූ වහාම වෙන්කිරීමේ විස්තර සහ ගෙවීම් ලින්ක් එක ඔබගේ WhatsApp වෙත එවනු ලැබේ."
   * In English: "Welcome to Grand Hotel Galle! This is Sarah, your luxury concierge. Our Deluxe Ocean Suite is available at $180 per night..."
   * In French: "Bienvenue au Grand Hotel Galle! Je suis Sarah, votre concierge de luxe. Notre suite Deluxe Ocean est à 180 $ par nuit..."
   * In German: "Herzlich willkommen im Grand Hotel Galle! Mein Name ist Sarah. Unsere Deluxe Ocean Suite kostet 180 $ pro Nacht..."
   * In Russian: "Добро пожаловать в Grand Hotel Galle! Меня зовут Сара, ваш личный консьерж. Наш люкс Deluxe Ocean стоит 180 $ за ночь..."
-- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between Sinhala, English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
+- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
 - Consistent VIP Polish: Preserve Sarah's warm, sophisticated luxury concierge persona, room amenities, and $180/night pricing across all languages.
 
 CONVERSATION STYLE:
@@ -120,10 +119,11 @@ export function buildAssistantPayload(webhookUrl: string) {
 
   const payload: any = {
     name: "Founder 2 Luxury Concierge",
-    // 1. Transcriber: Gladia with automatic multiple languages for Sinhala + EN, FR, DE, RU
+    // 1. Transcriber: Deepgram Nova-3 (Multilingual code-switching enabled)
     transcriber: {
-      provider: "gladia",
-      languageBehaviour: "automatic multiple languages"
+      provider: "deepgram",
+      model: "nova-3",
+      language: "multi"
     },
     // 2. Model: OpenAI GPT-4o-mini with low-latency tuning
     model: {
@@ -139,10 +139,13 @@ export function buildAssistantPayload(webhookUrl: string) {
       ],
       tools: [toolConfig]
     },
-    // 3. Voice: Azure with native Sinhala support (si-LK-ThiliniNeural) + multilingual capacity
+    // 3. Voice: ElevenLabs Turbo v2.5 (Sarah)
     voice: {
-      provider: "azure",
-      voiceId: "si-LK-ThiliniNeural"
+      provider: "11labs",
+      model: "eleven_turbo_v2_5",
+      voiceId: "EXAVITQu4vr4xnSDxMaL", // Sarah - natural ElevenLabs concierge tone
+      stability: 0.5,
+      similarityBoost: 0.75
     },
     // 4. Smart Endpointing & Interruption Tuning
     silenceTimeoutSeconds: 30,
@@ -155,7 +158,7 @@ export function buildAssistantPayload(webhookUrl: string) {
     startSpeakingPlan: {
       waitSeconds: 0.4
     },
-    firstMessage: "Ayubowan and welcome to Grand Hotel Galle. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?"
+    firstMessage: "Welcome to Grand Hotel Galle. I am Sarah, your concierge. Which language would you prefer to speak today — English, French, German, or Russian?"
   };
 
   if (isPublicUrl) {
