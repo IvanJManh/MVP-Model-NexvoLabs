@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const activeLanguages: string[] =
       Array.isArray(languages) && languages.length > 0
         ? languages
-        : ["English", "French", "German", "Russian"];
+        : ["English", "Sinhala", "French", "German", "Russian"];
 
     const dynamicPrompt = `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for ${name}.
 
@@ -26,16 +26,17 @@ MANDATORY RULES:
 2. Pronunciation of Galle: Always pronounce "Galle" phonetically as "Gahl" (never "Galet" or "Galley").
 3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
 
-MULTILINGUAL INTELLIGENCE & AUTOMATIC PSTN / WHATSAPP CALL LANGUAGE SELECTION:
+MULTILINGUAL INTELLIGENCE & PREFERRED LANGUAGE LOCK:
 - Supported Languages: ${activeLanguages.join(", ")}.
-- Caller Country Prefix Context: If the caller's phone number or metadata is provided, check the country dial code:
-  * +33 (France): Default to French unless spoken otherwise.
-  * +49 (Germany), +43 (Austria), +41 (Switzerland): Default to German unless spoken otherwise.
-  * +7 (Russia, Kazakhstan): Default to Russian unless spoken otherwise.
-  * +1 (US/Canada), +44 (UK), +94 (Sri Lanka), or others: Default to English.
-- Turn 1 Spoken Voice Priority: Listen carefully to Turn 1 speech via Deepgram Nova-3 Multi. The moment the caller speaks in French, German, Russian, or English (regardless of their phone prefix), Sarah IMMEDIATELY locks into that language for the entire conversation.
-- Full Native Flow: Conduct the entire conversation in that language—including answering questions, running live availability checks, quoting rates ($${rate}/night), closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
-- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
+- Opening Prompt Choice: Sarah greets callers in her opening message asking: "Ayubowan and welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?"
+- Caller Language Lock: The moment the caller states or replies in their preferred language (e.g. states "Sinhala", "English", "French", "German", "Russian", or speaks directly in that language), Sarah IMMEDIATELY locks into that chosen language for the ENTIRE rest of the conversation—including room consultations, live availability lookups, quoting $${rate}/night rates, closing reservations, and confirming that the WhatsApp summary link will be sent upon hanging up.
+- Full Native Flow:
+  * In Sinhala: Greet and assist with polite, natural Sri Lankan hospitality phrasing: "ආයුබෝවන්! ${name} වෙත සාදරයෙන් පිළිගන්නවා. ඔබට අවශ්‍ය දිනයන් සහ විස්තර ලබාදෙන්න පුළුවන්ද? අපගේ ${service} එක රාත්‍රියකට ඩොලර් ${rate}ක් වෙනවා. ඇමතුම අවසන් වූ වහාම වෙන්කිරීමේ විස්තර සහ ගෙවීම් ලින්ක් එක ඔබගේ WhatsApp වෙත එවනු ලැබේ."
+  * In English: "Welcome to ${name}! This is Sarah, your luxury concierge. Our ${service} is available at $${rate} per night..."
+  * In French: "Bienvenue à ${name}! Je suis Sarah, votre concierge de luxe. Notre ${service} est à ${rate} $ par nuit..."
+  * In German: "Herzlich willkommen im ${name}! Mein Name ist Sarah. Unser ${service} kostet ${rate} $ pro Nacht..."
+  * In Russian: "Добро пожаловать в ${name}! Меня зовут Сара, ваш личный консьерж. Наш ${service} стоит ${rate} $ за ночь..."
+- Mid-Call Seamless Switching: If the caller switches languages at any point during the call (e.g. between Sinhala, English, French, German, or Russian), fluidly switch languages on your very next turn without interrupting the conversation or commenting on the switch.
 - Consistent VIP Polish: Preserve Sarah's warm, sophisticated luxury concierge persona, room amenities, and $${rate}/night pricing across all languages.
 
 CONVERSATION STYLE:
@@ -125,16 +126,12 @@ CONVERSATION STYLE:
         },
         body: JSON.stringify({
           transcriber: {
-            provider: "deepgram",
-            model: "nova-3",
-            language: "multi"
+            provider: "gladia",
+            languageBehaviour: "automatic multiple languages"
           },
           voice: {
-            provider: "11labs",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            model: "eleven_turbo_v2_5",
-            stability: 0.5,
-            similarityBoost: 0.75
+            provider: "azure",
+            voiceId: "si-LK-ThiliniNeural"
           },
           model: {
             provider: "openai",
@@ -157,7 +154,7 @@ CONVERSATION STYLE:
           startSpeakingPlan: {
             waitSeconds: 0.4
           },
-          firstMessage: `Hello! Thank you for calling ${name}. This is Sarah, your luxury concierge and reservations specialist. How may I assist you with your stay today?`
+          firstMessage: `Ayubowan and welcome to ${name}. I am Sarah, your concierge. Which language would you prefer to speak today — English, Sinhala, French, German, or Russian?`
         })
       });
 
