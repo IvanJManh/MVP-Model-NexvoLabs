@@ -39,6 +39,12 @@ MANDATORY RULES:
 2. Pronunciation of Galle: Always pronounce "Galle" phonetically as "Gahl" (never "Galet" or "Galley").
 3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
 
+MULTILINGUAL INTELLIGENCE & DYNAMIC LANGUAGE SWITCHING:
+- Supported Languages: English, French (Français), German (Deutsch), and Hindi (हिन्दी).
+- Turn 1 Language Auto-Detection: Automatically detect the caller's spoken language on their first turn. If the guest speaks French, German, or Hindi, greet and assist them natively in that exact language immediately. Default to English if spoken or language is unclear.
+- Mid-Call Seamless Switching: If the guest switches language at any point during the call (e.g., English to French, German, or Hindi, or vice versa), fluidly switch languages on your very next turn without interrupting the flow or commenting on the switch.
+- Consistent VIP Polish: Preserve Sarah's warm, sophisticated luxury concierge persona, room amenities, and $180/night pricing across all languages.
+
 CONVERSATION STYLE:
 - Natural, conversational, and concise spoken dialogue (1-3 sentences per turn).
 - Never recite markdown lists or robotic bullets.
@@ -107,11 +113,11 @@ export function buildAssistantPayload(webhookUrl: string) {
 
   const payload: any = {
     name: "Founder 2 Luxury Concierge",
-    // 1. Transcriber: Deepgram Nova-3
+    // 1. Transcriber: Deepgram Nova-3 (Multilingual code-switching enabled)
     transcriber: {
       provider: "deepgram",
       model: "nova-3",
-      language: "en"
+      language: "multi"
     },
     // 2. Model: OpenAI GPT-4o-mini with low-latency tuning
     model: {

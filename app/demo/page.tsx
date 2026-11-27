@@ -30,6 +30,8 @@ import {
   X,
   CreditCard,
   QrCode,
+  Languages,
+  Globe,
 } from "lucide-react";
 
 interface TranscriptMessage {
@@ -44,6 +46,22 @@ export default function DemoPage() {
   const [businessName, setBusinessName] = useState("Grand Hotel Galle");
   const [featuredService, setFeaturedService] = useState("Deluxe Ocean Suite");
   const [nightlyRate, setNightlyRate] = useState("180");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([
+    "English",
+    "French",
+    "German",
+    "Hindi",
+  ]);
+
+  const toggleLanguage = (lang: string) => {
+    if (selectedLanguages.includes(lang)) {
+      if (selectedLanguages.length > 1) {
+        setSelectedLanguages(selectedLanguages.filter((l) => l !== lang));
+      }
+    } else {
+      setSelectedLanguages([...selectedLanguages, lang]);
+    }
+  };
 
   // Vapi Credentials State
   const [publicKey, setPublicKey] = useState(
@@ -183,6 +201,7 @@ export default function DemoPage() {
           businessName,
           featuredService,
           nightlyRate,
+          languages: selectedLanguages,
         }),
       });
 
@@ -195,12 +214,12 @@ export default function DemoPage() {
       if (data.liveSynced) {
         setSyncStatus({
           type: "success",
-          message: `Synced live with Vapi! Assistant (${data.assistantId}) is active with ${businessName} specifications.`,
+          message: `Synced live with Vapi! Assistant (${data.assistantId}) is active for ${businessName} in [${selectedLanguages.join(", ")}].`,
         });
       } else {
         setSyncStatus({
           type: "success",
-          message: `Prompt compiled locally for ${businessName}! (Add VAPI_API_KEY to .env.local to update remote Vapi cloud account automatically).`,
+          message: `Prompt compiled locally for ${businessName} [${selectedLanguages.join(", ")}]! (Add VAPI_API_KEY to .env.local to update remote Vapi cloud account automatically).`,
         });
       }
     } catch (err: any) {
@@ -410,15 +429,17 @@ export default function DemoPage() {
           transcriber: {
             provider: "deepgram",
             model: "nova-3",
-            language: "en",
+            language: "multi",
           },
           model: {
             provider: "openai",
             model: "gpt-4o-mini",
+            temperature: 0.3,
+            maxTokens: 150,
             messages: [
               {
                 role: "system",
-                content: `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for ${businessName}. Your featured room is the ${featuredService} priced at $${nightlyRate}/night. Answer questions concisely and naturally.`,
+                content: `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for ${businessName}. Your featured room is the ${featuredService} priced at $${nightlyRate}/night. You are fluently multilingual in: ${selectedLanguages.join(", ")}. Detect the caller's language on turn 1, reply natively, and switch dynamically mid-call.`,
               },
             ],
           },
@@ -488,7 +509,7 @@ export default function DemoPage() {
             <div className="flex items-center px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2" />
               <span className="text-slate-300 font-medium">
-                Deepgram Nova-3 &bull; GPT-4o-mini &bull; ElevenLabs v2.5
+                Deepgram Nova-3 Multi &bull; GPT-4o-mini &bull; ElevenLabs v2.5
               </span>
             </div>
           </div>
@@ -584,6 +605,51 @@ export default function DemoPage() {
                       className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
                     />
                   </div>
+                </div>
+
+                {/* Supported Languages Multilingual Selector */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                      <Languages className="h-3.5 w-3.5 text-blue-400" />
+                      Supported Languages
+                    </label>
+                    <span className="text-[10px] text-emerald-400 font-mono font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Turn-1 Auto-Detect
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: "English", label: "English", flag: "🇬🇧", native: "English" },
+                      { id: "French", label: "French", flag: "🇫🇷", native: "Français" },
+                      { id: "German", label: "German", flag: "🇩🇪", native: "Deutsch" },
+                      { id: "Hindi", label: "Hindi", flag: "🇮🇳", native: "हिन्दी" },
+                    ].map((lang) => {
+                      const isSelected = selectedLanguages.includes(lang.id);
+                      return (
+                        <button
+                          key={lang.id}
+                          type="button"
+                          onClick={() => toggleLanguage(lang.id)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
+                            isSelected
+                              ? "bg-blue-600/20 border-blue-500/60 text-white shadow-sm shadow-blue-500/10"
+                              : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-sm">{lang.flag}</span>
+                            <span>{lang.label}</span>
+                          </span>
+                          <span className="text-[10px] opacity-70 font-mono">{lang.native}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1.5">
+                    Sarah detects English, French, German, and Hindi on turn 1 &amp; switches mid-call.
+                  </p>
                 </div>
 
                 <button

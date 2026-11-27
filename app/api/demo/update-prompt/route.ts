@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { businessName, featuredService, nightlyRate } = await req.json();
+    const { businessName, featuredService, nightlyRate, languages } = await req.json();
 
     const name = businessName || "Grand Hotel Galle";
     const service = featuredService || "Deluxe Ocean Suite";
     const rate = nightlyRate || "180";
+    const activeLanguages: string[] =
+      Array.isArray(languages) && languages.length > 0
+        ? languages
+        : ["English", "French", "German", "Hindi"];
 
     const dynamicPrompt = `You are Sarah, an ultra-poised, warm, and highly persuasive VIP Sales & Guest Experience Representative for ${name}.
 
@@ -21,6 +25,12 @@ MANDATORY RULES:
 1. WhatsApp Confirmation Behavior: Never say you cannot send WhatsApp messages. Instead, tell the guest: "As soon as we wrap up this call, our concierge system will automatically send your reservation summary and priority checkout link directly to your WhatsApp."
 2. Pronunciation of Galle: Always pronounce "Galle" phonetically as "Gahl" (never "Galet" or "Galley").
 3. Single Tool Call: Pass the entire stay date range into a single 'get_service_availability_and_price' tool invocation rather than calling the tool separately for each night.
+
+MULTILINGUAL INTELLIGENCE & DYNAMIC LANGUAGE SWITCHING:
+- Supported Languages: ${activeLanguages.join(", ")}.
+- Turn 1 Language Auto-Detection: Automatically detect the caller's spoken language on their first turn. If the guest speaks any supported language (${activeLanguages.join(", ")}), greet and assist them natively in that exact language immediately. Default to English if spoken or language is unclear.
+- Mid-Call Seamless Switching: If the guest switches language at any point during the call (e.g. from English to French, German, or Hindi, or vice versa), fluidly switch languages on your very next turn without interrupting the flow or commenting on the switch.
+- Consistent VIP Polish: Preserve Sarah's warm, sophisticated luxury concierge persona, room amenities, and $${rate}/night pricing across all languages.
 
 CONVERSATION STYLE:
 - Natural, conversational, and concise spoken dialogue (1-3 sentences per turn).
@@ -108,6 +118,18 @@ CONVERSATION STYLE:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          transcriber: {
+            provider: "deepgram",
+            model: "nova-3",
+            language: "multi"
+          },
+          voice: {
+            provider: "11labs",
+            voiceId: "21m00Tcm4TlvDq8ikWAM",
+            model: "eleven_turbo_v2_5",
+            stability: 0.5,
+            similarityBoost: 0.75
+          },
           model: {
             provider: "openai",
             model: "gpt-4o-mini",
@@ -153,13 +175,14 @@ CONVERSATION STYLE:
         businessName: name,
         featuredService: service,
         nightlyRate: rate,
+        languages: activeLanguages,
         assistantId: updatedData.id,
         prompt: dynamicPrompt
       });
     }
 
     // Fallback: Simulation / Local preview if live keys aren't set yet
-    console.log("[DYNAMIC PROMPT COMPILED (LOCAL PREVIEW)]:", { name, service, rate });
+    console.log("[DYNAMIC PROMPT COMPILED (LOCAL PREVIEW)]:", { name, service, rate, languages: activeLanguages });
     return NextResponse.json({
       success: true,
       liveSynced: false,
@@ -167,6 +190,7 @@ CONVERSATION STYLE:
       businessName: name,
       featuredService: service,
       nightlyRate: rate,
+      languages: activeLanguages,
       prompt: dynamicPrompt
     });
   } catch (error: any) {
